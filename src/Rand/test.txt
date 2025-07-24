@@ -1,0 +1,131 @@
+import { Injectable } from '@nestjs/common';
+import { CreateLocationDto } from './dto/optimize.dto';
+
+@Injectable()
+export class GraphService {
+  private nodes = new Map<string, { lat: number; lng: number }>();
+  private edges = new Map<string, Set<string>>();
+
+  addLocation(dto: CreateLocationDto) {
+    const { name, lat, lng, connections } = dto;
+    this.nodes.set(name, { lat, lng });
+
+    if (!this.edges.has(name)) {
+      this.edges.set(name, new Set());
+    }
+
+    for (const { to } of connections) {
+      this.edges.get(name)!.add(to);
+
+      if (!this.edges.has(to)) {
+        this.edges.set(to, new Set());
+      }
+      this.edges.get(to)!.add(name);
+    }
+  }
+
+  private haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private buildGraph(): Map<string, Map<string, number>> {
+    const graph = new Map<string, Map<string, number>>();
+
+    for (const [node, neighbors] of this.edges.entries()) {
+      const distances = new Map<string, number>();
+      const nodeCoords = this.nodes.get(node);
+      if (!nodeCoords) continue;
+
+      for (const neighbor of neighbors) {
+        const neighborCoords = this.nodes.get(neighbor);
+        if (!neighborCoords) continue;
+
+        const distance = this.haversine(
+          nodeCoords.lat,
+          nodeCoords.lng,
+          neighborCoords.lat,
+          neighborCoords.lng
+        );
+
+        distances.set(neighbor, distance);
+      }
+
+      graph.set(node, distances);
+    }
+
+    return graph;
+  }
+
+  dijkstra(start: string, end: string): { path: string[]; distance: number } {
+    const graph = this.buildGraph();
+    const distances = new Map<string, number>();
+    const previous = new Map<string, string | null>();
+    const visited = new Set<string>();
+    const pq: [number, string][] = [];
+
+    for (const node of graph.keys()) {
+      const distance = node === start ? 0 : Infinity;
+      distances.set(node, distance);
+      previous.set(node, null);
+      pq.push([distance, node]);
+    }
+
+    while (pq.length > 0) {
+      pq.sort((a, b) => a[0] - b[0]);
+
+      const item = pq.shift();
+      if (!item) break;
+
+      const [currDist, node] = item;
+      if (visited.has(node)) continue;
+
+      visited.add(node);
+
+      const neighbors = graph.get(node);
+      if (!neighbors) continue;
+
+      for (const [neighbor, weight] of neighbors.entries()) {
+        const alt = currDist + weight;
+        if (alt < (distances.get(neighbor) ?? Infinity)) {
+          distances.set(neighbor, alt);
+          previous.set(neighbor, node);
+          pq.push([alt, neighbor]);
+        }
+      }
+    }
+
+    const path: string[] = [];
+    let current: string | null = end;
+
+    while (current) {
+      path.unshift(current);
+      current = previous.get(current) ?? null;
+    }
+
+    return {
+      path,
+      distance: distances.get(end) ?? Infinity
+    };
+  }
+
+  getNodes(): Record<string, { lat: number; lng: number }> {
+    return Object.fromEntries(this.nodes);
+  }
+
+  getEdges(): Record<string, string[]> {
+    const result: Record<string, string[]> = {};
+    for (const [node, connections] of this.edges) {
+      result[node] = Array.from(connections);
+    }
+    return result;
+  }
+
+}

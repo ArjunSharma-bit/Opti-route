@@ -1,0 +1,120 @@
+import { Injectable } from '@nestjs/common';
+import { OptimizePathDto } from './dto/optimize.dto';
+import { OptimizeMultiDto } from './dto/optimize.dto';
+import { ShortestPathResponseDto, ShortestMultiResponseDto } from './dto/graph-response.dto';
+
+@Injectable()
+export class GraphService {
+  private async haversine(lat1: number, lon1: number, lat2: number, lon2: number): Promise<number> {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  async optimizeFullRoute(dto: OptimizePathDto): Promise<ShortestPathResponseDto> {
+    try {
+      console.time('optimizeFullRoute');
+      const { locations, from, to } = dto;
+      const coords = new Map<string, { lat: number; lng: number }>(locations.map(l => [l.name, { lat: l.lat, lng: l.lng }]));
+      if (!coords.has(from) || !coords.has(to))
+        throw new Error('Invalid input: missing start(from)/end(to)');
+
+      const graph = new Map<string, Map<string, number>>();
+      await Promise.all(Array.from(coords).map(async ([n1, c1]) => {
+        const neighbors = new Map<string, number>();
+        await Promise.all(Array.from(coords).map(async ([n2, c2]) => {
+          if (n1 !== n2) {
+            neighbors.set(n2, await this.haversine(c1.lat, c1.lng, c2.lat, c2.lng));
+          }
+        }));
+        graph.set(n1, neighbors);
+      }));
+
+      const dijkstra = async (start: string, end: string): Promise<{ path: string[]; distance: number }> => {
+        const distances = new Map<string, number>(Array.from(graph.keys()).map(n => [n, n === start ? 0 : Infinity]));
+        const previous = new Map<string, string | null>(Array.from(graph.keys()).map(n => [n, null]));
+        const pq: [number, string][] = Array.from(distances).map(([n, d]) => [d, n]);
+        const visited = new Set<string>();
+
+        while (pq.length) {
+          pq.sort((a, b) => a[0] - b[0]); // Synchronous
+          const [d, n] = pq.shift()!;
+          if (visited.has(n)) continue;
+          visited.add(n);
+          for (const [nb, w] of graph.get(n)!) {
+            const alt = d + w;
+            if (alt < (distances.get(nb) ?? Infinity)) {
+              distances.set(nb, alt);
+              previous.set(nb, n);
+              pq.push([alt, nb]);
+            }
+          }
+        }
+
+        const path: string[] = [];
+        let curr: string | null = end;
+        while (curr) {
+          path.unshift(curr);
+          curr = previous.get(curr) ?? null;
+        }
+        return { path, distance: parseFloat((distances.get(end) ?? Infinity).toFixed(3)) };
+      };
+
+      const visited = new Set([from]);
+      const path = [from];
+      let totalDistance = 0;
+      let current = from;
+
+      while (visited.size < locations.length - 1) {
+        let nearest = '', minDist = Infinity;
+        const distancePromises = Array.from(coords).map(async ([name]) => {
+          if (!visited.has(name) && name !== to) {
+            const { distance } = await dijkstra(current, name);
+            return { name, distance };
+          }
+          return null;
+        });
+        const distances = (await Promise.all(distancePromises)).filter((d): d is { name: string; distance: number } => d !== null);
+        for (const { name, distance } of distances) {
+          if (distance < minDist) {
+            minDist = distance;
+            nearest = name;
+          }
+        }
+        if (!nearest) break;
+        const { path: Path, distance } = await dijkstra(current, nearest);
+        totalDistance += distance;
+        visited.add(nearest);
+        path.push(...Path.slice(1));
+        current = nearest;
+      }
+
+      if (!visited.has(to)) {
+        const { path: finalPath, distance } = await dijkstra(current, to);
+        totalDistance += distance;
+        path.push(...finalPath.slice(1));
+      }
+
+      console.timeEnd('optimizeFullRoute');
+      return { path, distance: parseFloat(totalDistance.toFixed(3)) };
+    } catch (err) {
+      throw new Error(`Route Optimization failed: ${err}`);
+    }
+  }
+
+  async optimizeMultiRoutes(dto: OptimizeMultiDto): Promise<ShortestMultiResponseDto> {
+    try {
+      console.time('optimizeMultipleRoutes');
+      const results = await Promise.all(dto.optimize.map(async (opt) => {
+        return await this.optimizeFullRoute(opt);
+      }));
+      console.timeEnd('optimizeMultipleRoutes');
+      return { results };
+    } catch (err) {
+      throw new Error(`Multiple Route Optimization failed: ${err}`);
+    }
+  }
+}
