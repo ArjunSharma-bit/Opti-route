@@ -3,9 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GraphController } from './graph.controller';
 import { GraphService } from './graph.service';
+import { AuthModule } from './auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
