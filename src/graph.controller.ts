@@ -1,7 +1,7 @@
 import { Controller, Post, Body, HttpCode } from '@nestjs/common';
 import { GraphService } from './graph.service';
 import { OptimizeMultiDto, OptimizePathDto } from './dto/optimize.dto';
-import { ShortestPathResponseDto, ShortestMultiResponseDto } from './dto/graph-response.dto';
+import { ShortestPathResponseDto } from './dto/graph-response.dto';
 import { ApiBadRequestResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { error } from 'console';
 
