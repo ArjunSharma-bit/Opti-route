@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Model } from 'mongoose';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -9,7 +10,7 @@ export class AuthService {
     constructor(
         @InjectModel(User.name)
         private userModel: Model<UserDocument>,
-        private readonly jwtService: JwttService,
+        private readonly jwtService: JwtService,
     ) { }
 
     async signUp(username: string, email: string, password: string) {
@@ -26,11 +27,13 @@ export class AuthService {
 
     async signIn(email: string, password: string) {
         const user = await this.userModel.findOne({ email });
-        if (!user) throw new UnauthorizedException('Invalid credentials');
+        if (!user || (await bcrypt.compare(password, user.password)))
+            throw new UnauthorizedException('Invalid credentials');
 
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) throw new UnauthorizedException('Invalid credentials');
-
-        return { message: 'Login successful' };
+        const payload = { email: user.email, _id: user._id }
+        const token = await this.jwtService.signAsync(payload)
+        return {
+            access_token: token
+        }
     }
 }

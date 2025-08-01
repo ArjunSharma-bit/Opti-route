@@ -2,17 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtDecodedPayload } from 'src/auth/jwt.schema';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(configService: ConfigService) {
+        const jwtsecret = configService.get<string>('JWT_SECRET');
+        if (!jwtsecret) {
+            throw new Error('JWT_SECRET is not defined in the environment variables')
+        }
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            secretOrKey: configService.get('JWT_SECRET'),
+            secretOrKey: jwtsecret
         });
     }
 
-    async validate(payload: any) {
-        return { userId: payload.sub, email: payload.email };
+    async validate(payload: JwtDecodedPayload) {
+        return { userId: payload._id, email: payload.email };
     }
 }
