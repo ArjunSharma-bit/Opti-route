@@ -14,7 +14,7 @@ import { AuthModule } from './auth.module';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => {
+      useFactory: async (configService: ConfigService) => {
         const mongoDsn = configService.get<string>('MONGO_DSN');
         if (!mongoDsn) {
           throw new Error('MONGO_DSN environment variable is not defined');

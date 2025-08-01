@@ -15,6 +15,3 @@ export class ShortestMultiResponseDto {
   results: ShortestPathResponseDto[];
 
 }
-
-
-

@@ -47,6 +47,10 @@ services:
       - mongo1
       - mongo2
       - mongo3
+
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
     networks:
       - mongo-net
 networks:
