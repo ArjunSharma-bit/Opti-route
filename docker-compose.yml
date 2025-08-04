@@ -1,63 +1,77 @@
-version: '3.8'
-
 services:
-  mongo1:
-    image: mongo:6.0
-    container_name: mongo1
+  opti-route:
+    hostname: opti-route
+    container_name: optiroute
+    command: 'npm run start:debug'
     ports:
-      - "27017:27017"
-    command: [ "--replSet", "optiroute" ]
-    volumes:
-      - mongo1-data:/data/db
-      - ./mongo-init:/docker-entrypoint-initdb.d
-    networks:
-      - mongo-net
-
-  mongo2:
-    image: mongo:6.0
-    container_name: mongo2
-    ports:
-      - "27018:27017"
-    command: [ "--replSet", "optiroute" ]
-    volumes:
-      - mongo2-data:/data/db
-    networks:
-      - mongo-net
-
-  mongo3:
-    image: mongo:6.0
-    container_name: mongo3
-    ports:
-      - "27019:27017"
-    command: [ "--replSet", "optiroute" ]
-    volumes:
-      - mongo3-data:/data/db
-    networks:
-      - mongo-net
-
-  nest-app:
+      - '3000:3000'
     build:
       context: .
-    container_name: nest-app
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    depends_on:
-      - mongo1
-      - mongo2
-      - mongo3
-
+      target: development
+      dockerfile: Dockerfile
+    restart: always
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+    env_file:
+      - ./.env
+    environment:
+      - USE_LOCAL_CONSOLE_FOR_AUDIT=true
     networks:
-      - mongo-net
+      - my-local-network
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    depends_on:
+      mongo-dp:
+        condition: service_healthy
+  mongo-dp:
+    hostname: mongo-dp
+    container_name: mongo-dp
+    image: mongo:6.0.6
+    ports:
+      - '27901:27017'
+    volumes:
+      # next time you lift this service you won't lost data
+      - ./_db/data-dp:/data/db
+      # map logs to local folder
+      #- '/var/log/mongodb'
+      # if you need to have a replSet, uncomment the following:
+      #- ./mongo_db_scripts:/docker-entrypoint-initdb.d/
+    command:
+      # save logs to a file, instead of showing them in console
+      # file is available inside container
+      # use the following commands to access it:
+      # docker exec -it my-mongodb-dp sh
+      # cat /var/log/mongodb/mongod.log 
+      - '--logpath'
+      - '/var/log/mongodb/mongod.log'
+      # if you need to have a replSet, uncomment the following:
+      - '--replSet'
+      - 'my-rs'
+      - '--bind_ip_all'
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.runCommand(\"ping\").ok" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    #restart: always
+    networks:
+      - my-local-network
+  mongodb-setup-dp:
+    image: mongo:6.0.6
+    depends_on:
+      mongo-dp:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -c
+      - |
+        mongosh --host mongo-dp:27017 --eval "rs.initiate(); rs.reconfig({_id: 'my-rs', version: 1, members: [ { _id: 0, priority: 2, host : 'mongo-dp:27017' }] },{force:true})"
+    restart: "no"
+    volumes:
+      - ./_db/data-dp-rs:/data/db
+    networks:
+      - my-local-network
 networks:
-  mongo-net:
-    driver: bridge
-
-volumes:
-  mongo1-data:
-  mongo2-data:
-  mongo3-data:
+  my-local-network:
+    external: false
