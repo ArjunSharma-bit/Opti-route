@@ -1,39 +1,30 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from '../schemas/user.schema';
-import { Model } from 'mongoose';
+import { Injectable, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { UserRepository } from 'src/repositories/user.repository';
 import * as bcrypt from 'bcrypt';
-
+import { MESSAGES } from 'src/helpers/constants/errors';
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name)
     constructor(
-        @InjectModel(User.name)
-        private userModel: Model<UserDocument>,
         private readonly jwtService: JwtService,
+        private readonly userRepository: UserRepository
     ) { }
 
     async signUp(username: string, email: string, password: string) {
-        const existingUser = await this.userModel.findOne({ $or: [{ email }, { username }] });
-        if (existingUser) {
-            throw new BadRequestException('Username or Email already exists');
-        }
-
-        const hashed = await bcrypt.hash(password, 10);
-        const user = new this.userModel({ username, email, password: hashed });
-        await user.save();
-        return { message: 'User created successfully' };
+        const user = await this.userRepository.createUser(username, email, password);
+        this.logger.log(`Signup successful for User: ${username} - ${email}`)
+        return { message: MESSAGES.USER_CREATED_SUCCESS }
     }
 
     async signIn(email: string, password: string) {
-        const user = await this.userModel.findOne({ email });
-        if (!user || !(await bcrypt.compare(password, user.password)))
-            throw new UnauthorizedException('Invalid credentials');
-
+        const user = await this.userRepository.findByEmail(email);
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            this.logger.log(`Sigin failed for user: ${email}`)
+            throw new UnauthorizedException(MESSAGES.INVALID_CREDENTIALS_ERROR);
+        }
         const payload = { email: user.email, _id: user._id }
         const token = await this.jwtService.signAsync(payload)
-        return {
-            access_token: token
-        }
+        return { access_token: token }
     }
 }
