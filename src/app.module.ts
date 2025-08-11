@@ -7,11 +7,11 @@ import { AuthModule } from './auth.module';
 
 @Module({
   imports: [
-    AuthModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
     }),
+    AuthModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {

@@ -20,7 +20,7 @@ import { UserRepository } from './repositories/user.repository';
             }),
             inject: [ConfigService],
         }),
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema, collection: 'users' }])
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema, collection: 'users' }]),
     ],
     exports: [JwtModule],
     providers: [AuthService, JwtStrategy, UserRepository],

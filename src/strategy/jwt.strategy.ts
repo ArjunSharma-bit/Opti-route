@@ -23,7 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: JwtDecodedPayload): Promise<JwtDecodedPayload | null> {
-        const user = await this.userRepository.findById(payload._id.toString());
+        const user = await this.userRepository.findByEmail(payload.email);
         if (!user) {
             return null;
         }

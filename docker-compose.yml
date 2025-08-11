@@ -1,7 +1,7 @@
 services:
   opti-route:
     hostname: opti-route
-    container_name: optiroute
+    container_name: opti-route
     command: 'npm run start:debug'
     ports:
       - '3000:3000'
@@ -15,14 +15,14 @@ services:
       - /usr/src/app/node_modules
     env_file:
       - ./.env
-    environment:
-      - USE_LOCAL_CONSOLE_FOR_AUDIT=true
     networks:
       - my-local-network
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     depends_on:
       mongo-dp:
+        condition: service_healthy
+      redis:
         condition: service_healthy
   mongo-dp:
     hostname: mongo-dp
@@ -34,7 +34,7 @@ services:
       # next time you lift this service you won't lost data
       - ./_db/data-dp:/data/db
       # map logs to local folder
-      #- '/var/log/mongodb'
+      - ./_db/logs:/var/log/mongodb
       # if you need to have a replSet, uncomment the following:
       #- ./mongo_db_scripts:/docker-entrypoint-initdb.d/
     command:
@@ -49,7 +49,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    #restart: always
+    restart: always
     networks:
       - my-local-network
   mongodb-setup-dp:
@@ -67,6 +67,25 @@ services:
       - ./_db/data-dp-rs:/data/db
     networks:
       - my-local-network
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: always
+    networks:
+      - my-local-network
 networks:
   my-local-network:
     external: false
+volumes:
+  mongo-data:
+  redis-data:

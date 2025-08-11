@@ -9,6 +9,9 @@ import { CurrentUser } from './common/decorators/current-user.decorators';
 import { JwtDecodedPayload } from './auth/jwt.schema';
 @Controller('graph')
 export class GraphController {
+  static optimizeRoute(dto: OptimizePathDto, userMock: { userId: string; }) {
+    throw new Error("Method not implemented.");
+  }
   constructor(private readonly graphService: GraphService) { }
 
   @UseGuards(AuthGuard('jwt'))

@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserRepository } from 'src/repositories/user.repository';
+import { UserRepository } from '../repositories/user.repository';
 import * as bcrypt from 'bcrypt';
-import { MESSAGES } from 'src/helpers/constants/errors';
+import { MESSAGES } from '../helpers/constants/errors';
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name)
