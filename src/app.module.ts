@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { GraphController } from './graph.controller';
 import { GraphService } from './graph.service';
 import { AuthModule } from './auth.module';
+import { RedisModule } from './redis.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AuthModule } from './auth.module';
       isGlobal: true,
     }),
     AuthModule,
+    RedisModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {

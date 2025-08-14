@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, UseGuards, } from '@nestjs/common';
 import { GraphService } from './graph.service';
 import { OptimizeMultiDto, OptimizePathDto } from './dto/optimize.dto';
 import { ShortestPathResponseDto } from './dto/graph-response.dto';
@@ -9,9 +9,7 @@ import { CurrentUser } from './common/decorators/current-user.decorators';
 import { JwtDecodedPayload } from './auth/jwt.schema';
 @Controller('graph')
 export class GraphController {
-  static optimizeRoute(dto: OptimizePathDto, userMock: { userId: string; }) {
-    throw new Error("Method not implemented.");
-  }
+
   constructor(private readonly graphService: GraphService) { }
 
   @UseGuards(AuthGuard('jwt'))

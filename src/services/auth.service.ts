@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from '../repositories/user.repository';
 import * as bcrypt from 'bcrypt';
@@ -19,9 +19,13 @@ export class AuthService {
 
     async signIn(email: string, password: string) {
         const user = await this.userRepository.findByEmail(email);
-        if (!user || !(await bcrypt.compare(password, user.password))) {
-            this.logger.log(`Sigin failed for user: ${email}`)
+        if (!user) {
             throw new UnauthorizedException(MESSAGES.INVALID_CREDENTIALS_ERROR);
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            this.logger.log(`Sigin failed for user: ${email}`)
+            throw new UnauthorizedException(MESSAGES.INVALID_CREDENTIALS_ERROR)
         }
         const payload = { email: user.email, _id: user._id }
         const token = await this.jwtService.signAsync(payload)

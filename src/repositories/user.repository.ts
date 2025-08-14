@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
@@ -7,29 +7,14 @@ import { MESSAGES } from '../helpers/constants/errors';
 import Redis from 'ioredis';
 
 @Injectable()
-export class UserRepository implements OnModuleInit {
+export class UserRepository {
   private readonly logger = new Logger(UserRepository.name);
   private readonly CACHE_TTL = 3600;
-  private cacheManager: Redis;
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {
-    this.cacheManager = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379', 10),
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-    });
-  }
-
-  async onModuleInit() {
-    try {
-      await this.cacheManager.ping();
-      this.logger.log('Redis connected successfully.');
-    } catch (err) {
-      this.logger.error('Redis connection failed:', err);
-    }
-  }
+    @Inject('REDIS_CLIENT') private readonly cacheManager: Redis,
+  ) { }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
     const cacheKey = `user:email:${email}`;

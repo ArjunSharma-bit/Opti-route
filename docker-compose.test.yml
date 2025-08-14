@@ -1,0 +1,58 @@
+services:
+  mongo-test:
+    image: mongo:6.0.6
+    container_name: mongo-test
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./_db/test-mongo:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping').ok" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - test-network
+
+  redis-test:
+    image: redis:7
+    container_name: redis-test
+    ports:
+      - "6381:6379"
+    volumes:
+      - ./_db/test-redis:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - test-network
+
+  app-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: app-test
+    command: [ "npm", "run", "start:dev" ]
+    depends_on:
+      mongo-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    environment:
+      NODE_ENV: test
+      MONGO_DSN: mongodb://mongo-test:27017/test-db
+      REDIS_HOST: redis-test
+      REDIS_PORT: '6379'
+      JWT_SECRET: testsecret
+      JWT_EXPIRY: '1h'
+    networks:
+      - test-network
+    volumes:
+      - .:/usr/src/app
+
+networks:
+  test-network:
+    driver: bridge
