@@ -1,5 +1,0 @@
-db.users.find()
-use optiroute
-show dbs
-db.users.find()
-rs.status()

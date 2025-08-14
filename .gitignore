@@ -2,7 +2,9 @@
 /dist
 /node_modules
 /build
-
+_db/
+-db/
+mongo-init/
 # Logs
 logs
 *.log
