@@ -34,6 +34,7 @@ describe('Auth/Opti E2E', () => {
     await redisClient.flushdb();
   });
   beforeEach(async () => {
+    await mongoose.connection.dropDatabase();
     await mongoose.connection.collection('users').deleteMany({})
   })
   afterAll(async () => {

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { GraphController } from "../graph.controller";
-import { GraphService } from "../graph.service";
-import { OptimizePathDto, OptimizeMultiDto } from "../dto/optimize.dto";
-import { ShortestPathResponseDto } from "../dto/graph-response.dto";
+import { GraphController } from "../src/graph.controller";
+import { GraphService } from "../src/graph.service";
+import { OptimizePathDto, OptimizeMultiDto } from "../src/dto/optimize.dto";
+import { ShortestPathResponseDto } from "../src/dto/graph-response.dto";
 import { JwtDecodedPayload } from "src/auth/jwt.schema";
 import { Types } from "mongoose";
 

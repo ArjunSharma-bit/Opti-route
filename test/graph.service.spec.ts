@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { GraphService } from "../graph.service";
-import { OptimizePathDto, OptimizeMultiDto } from "../dto/optimize.dto";
+import { GraphService } from "../src/graph.service";
+import { OptimizePathDto, OptimizeMultiDto } from "../src/dto/optimize.dto";
 
 describe('GraphService', () => {
     let service: GraphService

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OptimizePathDto, OptimizeMultiDto } from './dto/optimize.dto';
-import { ShortestPathResponseDto } from './dto/graph-response.dto';
+import { ShortestMultiResponseDto, ShortestPathResponseDto } from './dto/graph-response.dto';
 
 @Injectable()
 export class GraphService {
@@ -96,7 +96,9 @@ export class GraphService {
     const result = this.optimize(dto);
     console.timeEnd('optimizeSingle');
 
-    return { ...result }
+    const dtoInstance = Object.assign(new ShortestPathResponseDto(), result);
+    return dtoInstance;
+
   }
 
   async optimizeMulti(dto: OptimizeMultiDto) {
@@ -116,10 +118,9 @@ export class GraphService {
       sequentialResults.push(await this.optimizeSingle(opt));
     }
     console.timeEnd('Sequential Time');
-
-    return {
-      concurrentResults,
-      sequentialResults,
-    };
+    const response = new ShortestMultiResponseDto()
+    response.concurrentResults = concurrentResults;
+    response.sequentialResults = sequentialResults;
+    return response;
   }
 }

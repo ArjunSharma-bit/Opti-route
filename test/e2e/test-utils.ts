@@ -45,6 +45,18 @@ export const multiGraphDTO = {
     ]
 }
 
+export const multiGraphResDTO = {
+    concurrentResults: [
+        { path: ["A", "B", "C"], distance: 48.272 },
+        { path: ["X", "Y", "Z"], distance: 433.711 }
+    ],
+    sequentialResults: [
+        { path: ["A", "B", "C"], distance: 48.272 },
+        { path: ["X", "Y", "Z"], distance: 433.711 }
+    ]
+};
+
+
 // consTants for Api calls
 export const signUpUser = (app: INestApplication, user = testUserSignup) => {
     return request(app.getHttpServer())
