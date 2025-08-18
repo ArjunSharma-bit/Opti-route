@@ -1,15 +1,15 @@
-import { Controller, Post, Body, HttpCode, UseGuards, } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, UseGuards, Logger } from '@nestjs/common';
 import { GraphService } from './graph.service';
 import { OptimizeMultiDto, OptimizePathDto } from './dto/optimize.dto';
 import { ShortestMultiResponseDto, ShortestPathResponseDto } from './dto/graph-response.dto';
 import { ApiBadRequestResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { error } from 'console';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from './common/decorators/current-user.decorators';
 import { JwtDecodedPayload } from './auth/jwt.schema';
+
 @Controller('graph')
 export class GraphController {
-
+  private readonly logger = new Logger(GraphController.name)
   constructor(private readonly graphService: GraphService) { }
 
   @UseGuards(AuthGuard('jwt'))
@@ -27,10 +27,8 @@ export class GraphController {
     @Body() dto: OptimizePathDto,
     @CurrentUser() user: JwtDecodedPayload)
     : Promise<ShortestPathResponseDto> {
-    try {
-      console.log('User', user)
-      return Object.assign(new ShortestPathResponseDto(), await this.graphService.optimizeSingle(dto));
-    } catch (err) { throw err }
+    console.log('User', user)
+    return Object.assign(new ShortestPathResponseDto(), await this.graphService.optimizeSingle(dto));
   }
   @UseGuards(AuthGuard('jwt'))
   @Post('opti-multi')
@@ -47,12 +45,8 @@ export class GraphController {
     @Body() dto: OptimizeMultiDto,
     @CurrentUser() user: JwtDecodedPayload
   ): Promise<ShortestMultiResponseDto> {
-    try {
-      console.log('User', user)
-      return Object.assign(new ShortestMultiResponseDto(), await this.graphService.optimizeMulti(dto));
-    } catch (err) {
-      throw err;
-    }
+    console.log('User', user)
+    return Object.assign(new ShortestMultiResponseDto(), await this.graphService.optimizeMulti(dto));
 
   }
 }

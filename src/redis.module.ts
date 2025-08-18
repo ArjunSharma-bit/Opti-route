@@ -17,15 +17,6 @@ import Redis from 'ioredis';
                     port,
                     retryStrategy: (times) => Math.min(times * 50, 2000),
                 });
-
-                client.on('connect', () => {
-                    console.log(` Redis connected at ${host}:${port}`);
-                });
-
-                client.on('error', (err) => {
-                    console.error(' Redis connection error:', err);
-                });
-
                 return client;
             },
         },

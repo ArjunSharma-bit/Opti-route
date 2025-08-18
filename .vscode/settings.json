@@ -1,7 +1,3 @@
 {
-    "postman.settings.dotenv-detection-notification-visibility": false,
-    "sonarlint.connectedMode.project": {
-        "connectionId": "http-localhost-9000",
-        "projectKey": "route-optimizer"
-    }
+    "postman.settings.dotenv-detection-notification-visibility": false
 }

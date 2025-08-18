@@ -52,6 +52,11 @@ describe('OptiRoute E2E', () => {
     const res = await optimizeMulti(app, token)
     expect(res.status).toBe(200);
     expect(res.body).toStrictEqual(multiGraphResDTO)
+    console.log(res.body)
+  })
+
+  it('should return 401 if user does not exist', async () => {
+
   })
 
 

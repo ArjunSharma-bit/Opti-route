@@ -12,7 +12,7 @@ export class AuthService {
     ) { }
 
     async signUp(username: string, email: string, password: string) {
-        const user = await this.userRepository.createUser(username, email, password);
+        await this.userRepository.createUser(username, email, password);
         this.logger.log(`Signup successful for User: ${username} - ${email}`)
         return { message: MESSAGES.USER_CREATED_SUCCESS }
     }

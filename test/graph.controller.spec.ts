@@ -24,7 +24,6 @@ describe('Graphcontroller', () => {
         }).compile();
 
         controller = module.get(GraphController);
-        service = module.get(GraphService)
     })
 
     afterEach(() => {

@@ -5,6 +5,8 @@
 _db/
 -db/
 mongo-init/
+sonar-scanner/
+
 # Logs
 logs
 *.log

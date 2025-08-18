@@ -1,4 +1,4 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe, Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import Redis from 'ioredis';
 import mongoose from 'mongoose';
@@ -7,7 +7,6 @@ import { MESSAGES } from '../../src/helpers/constants/errors';
 import * as bcrypt from 'bcrypt';
 import { testUserSignin, testUserSignup, signInUser, signUpUser, getAuthToken, optimizeSingle } from './test-utils';
 import * as request from 'supertest'
-
 
 describe('Auth/Opti E2E', () => {
   let app: INestApplication;
@@ -25,7 +24,6 @@ describe('Auth/Opti E2E', () => {
 
     // Connect to MongoDB directly 
     await mongoose.connect(process.env.MONGO_DSN!);
-    await mongoose.connection.dropDatabase();
     // Clear users collection before tests
     await mongoose.connection.collection('users').deleteMany({});
 
@@ -34,7 +32,6 @@ describe('Auth/Opti E2E', () => {
     await redisClient.flushdb();
   });
   beforeEach(async () => {
-    await mongoose.connection.dropDatabase();
     await mongoose.connection.collection('users').deleteMany({})
   })
   afterAll(async () => {
@@ -58,7 +55,7 @@ describe('Auth/Opti E2E', () => {
   });
 
   it('should throw an Error if user already exists ', async () => {
-    const res = await signUpUser(app);
+    await signUpUser(app);
 
     const res2 = await signUpUser(app)
     expect(res2.status).toBe(400)
@@ -76,6 +73,39 @@ describe('Auth/Opti E2E', () => {
     expect(parsed.username).toBe(testUserSignup.username)
   })
 
+  it('should log Redis GET error when redis.get throws', async () => {
+    const redisClient = app.get('REDIS_CLIENT');
+    const getSpy = jest.spyOn(redisClient, 'get').mockImplementationOnce(() => {
+      throw new Error('Forced GET error');
+    });
+    const logSpy = jest.spyOn(Logger.prototype, 'warn');
+
+    await signUpUser(app).expect(201);
+    await signInUser(app, testUserSignin);
+
+    expect(getSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Redis GET error'));
+
+    getSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should log Redis SET error when redis.set throws', async () => {
+    const redisClient = app.get('REDIS_CLIENT');
+    const setSpy = jest.spyOn(redisClient, 'set').mockImplementationOnce(() => {
+      throw new Error('Forced SET error');
+    });
+    const logSpy = jest.spyOn(Logger.prototype, 'warn');
+
+    await signUpUser(app).expect(201);
+
+    expect(setSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Redis SET error'));
+
+    setSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
   it('POST /auth/signin --> should return access_token', async () => {
     const res = await signInUser(app)
       .expect(200);
@@ -90,7 +120,8 @@ describe('Auth/Opti E2E', () => {
     expect(compare).toBeTruthy();
   })
 
-  it('should return 401 on Invalid credentials', async () => {
+
+  it('should return 401 on Invalid password', async () => {
     await signUpUser(app);
     const res = await request(app.getHttpServer())
       .post('/auth/signin')
@@ -103,6 +134,21 @@ describe('Auth/Opti E2E', () => {
     expect(res.body).toHaveProperty('message')
     expect(res.body.message).toBe(MESSAGES.INVALID_CREDENTIALS_ERROR)
   })
+
+  it('should return 401 on Invalid credentials', async () => {
+    await signUpUser(app);
+    const res = await request(app.getHttpServer())
+      .post('/auth/signin')
+      .send({
+        email: 'wubbadub@example.com',
+        password: testUserSignin.password
+      });
+
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('message')
+    expect(res.body.message).toBe(MESSAGES.INVALID_CREDENTIALS_ERROR)
+  })
+
   it('should hit the Redis cache if cached', async () => {
     const redisClient = app.get('REDIS_CLIENT')
     const getSpy = jest.spyOn(redisClient, 'get')

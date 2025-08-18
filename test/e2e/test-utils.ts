@@ -2,8 +2,8 @@ import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 // Test Data
 export const testUserSignup = {
-    username: 'harambeWasInnocent',
-    email: 'lolol@example.com',
+    username: `user-${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+    email: `user-${Date.now()}_${Math.floor(Math.random() * 1000)}@example.com`,
     password: 'Passw0rd!---',
 };
 

@@ -12,7 +12,7 @@ export class UserRepository {
   private readonly CACHE_TTL = 3600;
 
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @Inject('REDIS_CLIENT') private readonly cacheManager: Redis,
   ) { }
 
@@ -42,7 +42,7 @@ export class UserRepository {
   }
 
   async createUser(username: string, email: string, password: string): Promise<UserDocument> {
-    const existingUser = await this.userModel.findOne({ $or: [{ email }, { username }] });
+    const existingUser = await this.userModel.findOne({ $or: [{ email }, { username }] }).exec();
     if (existingUser) {
       this.logger.warn(`User creation failed: ${MESSAGES.USER_EXISTS_ERROR}`);
       throw new BadRequestException(MESSAGES.USER_EXISTS_ERROR);

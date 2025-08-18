@@ -17,12 +17,9 @@ import { RedisModule } from './redis.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const mongoDsn = configService.get<string>('MONGO_DSN');
-        if (!mongoDsn) {
-          throw new Error('MONGO_DSN environment variable is not defined');
-        }
+        let uri = configService.get<string>('MONGO_DSN');
         return {
-          uri: mongoDsn
+          uri,
         };
       },
       inject: [ConfigService],
