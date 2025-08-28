@@ -13,7 +13,6 @@ describe('Auth/Opti E2E', () => {
   let redisClient: Redis;
 
   beforeAll(async () => {
-    // Create Nest app
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -22,20 +21,19 @@ describe('Auth/Opti E2E', () => {
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     await app.init();
 
-    // Connect to MongoDB directly 
     await mongoose.connect(process.env.MONGO_DSN!);
-    // Clear users collection before tests
     await mongoose.connection.collection('users').deleteMany({});
 
     // Setup Redis client
     redisClient = app.get('REDIS_CLIENT')
     await redisClient.flushdb();
   });
+
   beforeEach(async () => {
     await mongoose.connection.collection('users').deleteMany({})
   })
+
   afterAll(async () => {
-    // Cleanup Redis
     if (redisClient) {
       await redisClient.flushdb();
       await redisClient.quit();
@@ -74,7 +72,6 @@ describe('Auth/Opti E2E', () => {
   })
 
   it('should log Redis GET error when redis.get throws', async () => {
-    const redisClient = app.get('REDIS_CLIENT');
     const getSpy = jest.spyOn(redisClient, 'get').mockImplementationOnce(() => {
       throw new Error('Forced GET error');
     });
@@ -84,14 +81,13 @@ describe('Auth/Opti E2E', () => {
     await signInUser(app, testUserSignin);
 
     expect(getSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Redis GET error'));
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Redis GET Error: Forced GET error'));
 
     getSpy.mockRestore();
     logSpy.mockRestore();
   });
 
   it('should log Redis SET error when redis.set throws', async () => {
-    const redisClient = app.get('REDIS_CLIENT');
     const setSpy = jest.spyOn(redisClient, 'set').mockImplementationOnce(() => {
       throw new Error('Forced SET error');
     });
@@ -100,18 +96,23 @@ describe('Auth/Opti E2E', () => {
     await signUpUser(app).expect(201);
 
     expect(setSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Redis SET error'));
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Redis SET Error: Forced SET error'));
 
     setSpy.mockRestore();
     logSpy.mockRestore();
   });
+
+  it('should read Redis config correctly', async () => {
+    expect((redisClient as any).options.host).toBe('redis-test')
+    expect((redisClient as any).options.port).toBe(6379)
+
+  })
 
   it('POST /auth/signin --> should return access_token', async () => {
     const res = await signInUser(app)
       .expect(200);
     expect(res.body).toHaveProperty('access_token');
   });
-
   it('should check the passwords for validity', async () => {
     await signInUser(app)
       .expect(200)
@@ -159,8 +160,8 @@ describe('Auth/Opti E2E', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('access_token')
-
   })
+
   it('should optimize route with valid token', async () => {
     const token = await getAuthToken(app);
     const res = await optimizeSingle(app, token);

@@ -9,6 +9,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { UserRepository } from './repositories/user.repository';
 import { RedisModule } from './redis.module';
+import { PasswordService } from './services/password.service';
+import { UserCacheService } from './services/cache.service';
 @Module({
     imports: [
         PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -17,7 +19,7 @@ import { RedisModule } from './redis.module';
             imports: [ConfigModule],
             useFactory: async (config: ConfigService) => ({
                 secret: config.get('JWT_SECRET'),
-                expiry: { expiresIn: config.get('JWT_EXPIRY') },
+                signOptions: { expiresIn: config.get('JWT_EXPIRY') },
             }),
             inject: [ConfigService],
         }),
@@ -25,7 +27,7 @@ import { RedisModule } from './redis.module';
         RedisModule,
     ],
     exports: [JwtModule],
-    providers: [AuthService, JwtStrategy, UserRepository],
+    providers: [AuthService, PasswordService, UserCacheService, JwtStrategy, UserRepository],
     controllers: [AuthController],
 })
 export class AuthModule { }

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.61% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>41/42</span>
+                <span class='fraction'>37/37</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.5% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>39/40</span>
+                <span class='fraction'>35/35</span>
             </div>
         
             
@@ -117,19 +117,7 @@
 <a name='L52'></a><a href='#L52'>52</a>
 <a name='L53'></a><a href='#L53'>53</a>
 <a name='L54'></a><a href='#L54'>54</a>
-<a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a>
-<a name='L59'></a><a href='#L59'>59</a>
-<a name='L60'></a><a href='#L60'>60</a>
-<a name='L61'></a><a href='#L61'>61</a>
-<a name='L62'></a><a href='#L62'>62</a>
-<a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a>
-<a name='L65'></a><a href='#L65'>65</a>
-<a name='L66'></a><a href='#L66'>66</a>
-<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<a name='L55'></a><a href='#L55'>55</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -137,37 +125,29 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -186,23 +166,18 @@
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable, BadRequestException, Logger, Inject } from '@nestjs/common';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable, BadRequestException, Logger, } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
-import * as bcrypt from 'bcrypt';
 import { MESSAGES } from '../helpers/constants/errors';
-import Redis from 'ioredis';
-&nbsp;
+import { PasswordService } from '../services/password.service';
+import { UserCacheService } from '../services/cache.service';
 @Injectable()
 export class UserRepository {
   private readonly logger = new Logger(UserRepository.name);
@@ -210,30 +185,23 @@ export class UserRepository {
 &nbsp;
   constructor(
     @InjectModel(User.name) private readonly userModel: Model&lt;UserDocument&gt;,
-    @Inject('REDIS_CLIENT') private readonly cacheManager: Redis,
+    private readonly passwordService: PasswordService,
+    private readonly cacheService: UserCacheService,
   ) { }
 &nbsp;
   async findByEmail(email: string): Promise&lt;UserDocument | null&gt; {
     const cacheKey = `user:email:${email}`;
+    const cachedUser = await this.cacheService.get(cacheKey);
 &nbsp;
-    try {
-      const cachedUser = await this.cacheManager.get(cacheKey);
-      if (cachedUser) {
-        this.logger.log(`Cache hit for user with email: ${email}`);
-        return new this.userModel(JSON.parse(cachedUser));
-      }
-    } catch (err) {
-      this.logger.warn(`Redis GET error: ${err.message}`);
+    if (cachedUser) {
+      this.logger.log(`Cache hit for user with email: ${email}`);
+      return new this.userModel(JSON.parse(cachedUser));
     }
 &nbsp;
     const user = await this.userModel.findOne({ email }).exec();
     if (user) {
-      try {
-        await this.cacheManager.set(cacheKey, JSON.stringify(user.toObject()), 'EX', this.CACHE_TTL);
-        this.logger.log(`Cached user with email: ${email}`);
-      } catch (err) {
-<span class="cstat-no" title="statement not covered" >        this.logger.warn(`Redis SET error: ${err.message}`);</span>
-      }
+      await this.cacheService.set(cacheKey, JSON.stringify(user.toObject()), this.CACHE_TTL);
+      this.logger.log(`Cached user with email: ${email}`);
     }
     return user;
   }
@@ -245,17 +213,13 @@ export class UserRepository {
       throw new BadRequestException(MESSAGES.USER_EXISTS_ERROR);
     }
 &nbsp;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await this.passwordService.hash(password);
     const user = new this.userModel({ username, email, password: hashedPassword });
     const savedUser = await user.save();
 &nbsp;
     const emailCacheKey = `user:email:${email}`;
-    try {
-      await this.cacheManager.set(emailCacheKey, JSON.stringify(savedUser.toObject()), 'EX', this.CACHE_TTL);
-      this.logger.log(`Cached user with email: ${email}`);
-    } catch (err) {
-      this.logger.warn(`Redis SET error: ${err.message}`);
-    }
+    await this.cacheService.set(emailCacheKey, JSON.stringify(savedUser.toObject()), this.CACHE_TTL);
+    this.logger.log(`Cached user with email: ${email}`);
 &nbsp;
     this.logger.log(`User created successfully: ${username} - ${email}`);
     return savedUser;
@@ -268,7 +232,7 @@ export class UserRepository {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-18T05:25:00.219Z
+                at 2025-08-28T07:01:04.443Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

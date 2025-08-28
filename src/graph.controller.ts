@@ -27,7 +27,7 @@ export class GraphController {
     @Body() dto: OptimizePathDto,
     @CurrentUser() user: JwtDecodedPayload)
     : Promise<ShortestPathResponseDto> {
-    console.log('User', user)
+    this.logger.log('User', user)
     return Object.assign(new ShortestPathResponseDto(), await this.graphService.optimizeSingle(dto));
   }
   @UseGuards(AuthGuard('jwt'))
@@ -45,7 +45,7 @@ export class GraphController {
     @Body() dto: OptimizeMultiDto,
     @CurrentUser() user: JwtDecodedPayload
   ): Promise<ShortestMultiResponseDto> {
-    console.log('User', user)
+    this.logger.log('User', user)
     return Object.assign(new ShortestMultiResponseDto(), await this.graphService.optimizeMulti(dto));
 
   }

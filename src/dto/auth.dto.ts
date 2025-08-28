@@ -17,11 +17,11 @@ export class SignUpDto {
 }
 
 export class SignInDto {
-    @ApiProperty({ example: 'NotHonda@example.com' })
+    @ApiProperty({ example: 'HondaKAwasaki@example.com' })
     @IsEmail()
     email: string;
 
-    @ApiProperty({ example: 'NotPassword' })
+    @ApiProperty({ example: '8Ass#030' })
     @IsString()
     password: string;
 }

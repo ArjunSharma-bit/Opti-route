@@ -55,11 +55,6 @@ describe('OptiRoute E2E', () => {
     console.log(res.body)
   })
 
-  it('should return 401 if user does not exist', async () => {
-
-  })
-
-
   it('POST /graph/opti-multi should give optimized multi route', async () => {
     const token = await getAuthToken(app)
     const res = await optimizeMulti(app, token)

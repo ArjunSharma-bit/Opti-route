@@ -33,13 +33,9 @@ services:
     volumes:
       # next time you lift this service you won't lost data
       - ./_db/data-dp:/data/db
-      # map logs to local folder
-      - ./_db/logs:/var/log/mongodb
       # if you need to have a replSet, uncomment the following:
-      #- ./mongo_db_scripts:/docker-entrypoint-initdb.d/
+      - ./mongo_db_scripts:/docker-entrypoint-initdb.d/
     command:
-      - '--logpath'
-      - '/var/log/mongodb/mongod.log'
       # if you need to have a replSet, uncomment the following:
       - '--replSet'
       - 'my-rs'

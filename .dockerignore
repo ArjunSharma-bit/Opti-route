@@ -3,3 +3,5 @@ dist
 .env
 Dockerfile
 README.md
+_db/data-dp
+_db/logs
