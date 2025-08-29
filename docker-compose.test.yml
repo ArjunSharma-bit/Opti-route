@@ -50,9 +50,6 @@ services:
       JWT_EXPIRY: '1h'
     networks:
       - test-network
-    volumes:
-      - .:/usr/src/app
-
 networks:
   test-network:
     driver: bridge
