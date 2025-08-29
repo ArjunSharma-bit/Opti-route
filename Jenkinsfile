@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'docker:24.0.5-dind' // Docker-in-Docker image with CLI
+            image 'docker:24.0.5-dind' 
             args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
@@ -9,7 +9,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Jenkins automatically checks out PR branch
                 checkout scm
             }
         }
@@ -19,8 +18,7 @@ pipeline {
                 sh '''
                   echo "Starting test environment..."
                   docker compose -f docker-compose.test.yml up -d --build
-                  sleep 15 # wait for DB/Redis to be ready
-
+                  sleep 15 
                   echo "Running E2E tests..."
                   npm install
                   npm run test:e2e
