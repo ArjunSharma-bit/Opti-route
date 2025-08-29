@@ -13,7 +13,7 @@ pipeline {
             steps {
                 sh '''
                   echo "Starting test environment..."
-                  docker-compose -f docker-compose.test.yml up -d --build
+                  docker compose -f docker-compose.test.yml up -d --build
                   sleep 15 # wait for DB/Redis to be ready
 
                   echo "Running E2E tests..."
@@ -26,7 +26,7 @@ pipeline {
     post {
         always {
             echo " Cleaning up..."
-            sh 'docker-compose -f docker-compose.test.yml down'
+            sh 'docker compose -f docker-compose.test.yml down'
         }
         success {
             echo 'E2E tests passed'
