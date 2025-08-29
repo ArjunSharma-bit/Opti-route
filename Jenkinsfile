@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:24.0.5-dind' // Docker-in-Docker image with CLI
+            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     stages {
         stage('Checkout') {
@@ -17,6 +22,7 @@ pipeline {
                   sleep 15 # wait for DB/Redis to be ready
 
                   echo "Running E2E tests..."
+                  npm install
                   npm run test:e2e
                 '''
             }
@@ -25,7 +31,7 @@ pipeline {
 
     post {
         always {
-            echo " Cleaning up..."
+            echo "Cleaning up..."
             sh 'docker compose -f docker-compose.test.yml down'
         }
         success {
@@ -36,3 +42,4 @@ pipeline {
         }
     }
 }
+
