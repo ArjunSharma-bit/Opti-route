@@ -3,5 +3,7 @@ dist
 .env
 Dockerfile
 README.md
-_db/data-dp
-_db/logs
+_db/
+Dockerfile.jk
+npm-debug.log
+*.mongodb
