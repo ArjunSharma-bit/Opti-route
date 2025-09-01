@@ -17,8 +17,9 @@ pipeline {
                 script {
                     echo "Running Test Build"
                     sh '''
-                        docker compose -f docker-compose.test.yml up -d --build
+                        docker-compose -f docker-compose.test.yml up -d --build
                         sleep 15
+                        docker-compose -f docker-compose.test.yml ps
                     '''
                 }
             }
@@ -37,7 +38,7 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            sh 'docker compose -f docker-compose.test.yml down -v'
+            sh 'docker-compose -f docker-compose.test.yml down -v'
         }
     }
 }
