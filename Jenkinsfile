@@ -29,7 +29,7 @@ pipeline {
             steps {
                 echo "Running E2E Tests"
                 sh '''
-                docker exec app-test npm run test:e2e
+                docker-compose -f docker-compose.test.yml run --rm app-test npm run test:e2e
                 '''
             }
         }
