@@ -33,7 +33,7 @@ pipeline {
         stage('Run E2E Tests') {
             steps {
                 script {
-                githubNotify context: 'E2E-Tests', status: 'PENDING', description: 'Running......'
+                githubNotify context: 'E2E-Tests', status: 'PENDING', description: 'Running......', credentialsId: 'github-token'
               }
                 echo "Running E2E Tests"
                 sh '''
@@ -43,12 +43,12 @@ pipeline {
             post {
               success {
                 script {
-                  githubNotify context: 'E2E-Tests', status: 'SUCCESS', description: 'Test Passed'
+                  githubNotify context: 'E2E-Tests', status: 'SUCCESS', description: 'Test Passed', credentialsId: 'github-token'
                 }
               }
               failure {
                 script {
-                  githubNotify context: 'E2E-Tests', status: 'FAILURE', description: 'Test Failed'
+                  githubNotify context: 'E2E-Tests', status: 'FAILURE', description: 'Test Failed', credentialsId: 'github-token'
                 }
               }
             }
