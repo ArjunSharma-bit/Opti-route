@@ -2,6 +2,11 @@ pipeline {
     agent any
 
     stages {
+        stage("Checkout") {
+            steps {
+                Checkout scm
+            }
+        }
         stage('Check Docker') {
             steps {
                 script {
