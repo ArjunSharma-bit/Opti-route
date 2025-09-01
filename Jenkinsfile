@@ -32,11 +32,25 @@ pipeline {
 
         stage('Run E2E Tests') {
             steps {
+                script {
+                githubNotify context: 'E2E-Tests', status: 'PENDING', description: 'Running......'
+              }
                 echo "Running E2E Tests"
                 sh '''
                 docker-compose -f docker-compose.test.yml run --rm app-test npm run test:e2e
-                
                 '''
+            }
+            post {
+              success {
+                script {
+                  githubNotify context: 'E2E-Tests', status: 'SUCCESS', description: 'Test Passed'
+                }
+              }
+              failure {
+                script {
+                  githubNotify context: 'E2E-Tests', status: 'FAILURE', description: 'Test Failed'
+                }
+              }
             }
         }
     }
