@@ -1,52 +1,52 @@
-
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: opti-route
+---
 # ConfigMap for Opti-route app
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: opti-route-config
+  namespace: opti-route
 data:
   NODE_ENV: "development"
   USE_LOCAL_CONSOLE_FOR_AUDIT: "true"
   PORT: "3000"
-  MONGO_DSN: "mongodb://mongo-0.mongo:27017/optiroute?replicaSet=my-rs"
+  MONGO_DSN: "mongodb://mongo-0.mongo-svc.opti-route.svc.cluster.local:27017/optiroute?replicaSet=my-rs"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
   CACHE_TTL: "3000"
-
 ---
-
 # Secret for Opti-route 
-
 apiVersion: v1
 kind: Secret
 metadata:
   name: opti-route-secret
+  namespace: opti-route
 type: Opaque
 data:
   JWT_SECRET: aGFyYW1iZQ==   
   JWT_EXPIRY: MzYwMHM=       
-
 ---
-
-# Redis 
-
+# Redis PVC
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: redis-pvc
+  namespace: opti-route
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:
       storage: 500Mi
-
 ---
-
+# Redis Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
+  namespace: opti-route
 spec:
   replicas: 1
   selector:
@@ -69,45 +69,43 @@ spec:
       - name: redis-data
         persistentVolumeClaim:
           claimName: redis-pvc
-
 ---
-
+# Redis Service
 apiVersion: v1
 kind: Service
 metadata:
   name: redis
+  namespace: opti-route
 spec:
   selector:
     app: redis
   ports:
   - port: 6379
     targetPort: 6379
-
 ---
-
-# MongoDB StatefulSet + Service
-
+# MongoDB Headless Service (for StatefulSet)
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo
+  name: mongo-svc
+  namespace: opti-route
 spec:
-  clusterIP: None   
+  clusterIP: None
   selector:
     app: mongo
   ports:
   - port: 27017
     targetPort: 27017
-
 ---
-
+# MongoDB StatefulSet
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mongo
+  namespace: opti-route
 spec:
-  serviceName: mongo
-  replicas: 1
+  serviceName: mongo-svc
+  replicas: 1   # can scale later
   selector:
     matchLabels:
       app: mongo
@@ -133,15 +131,13 @@ spec:
       resources:
         requests:
           storage: 1Gi
-
 ---
-
-# MongoDB Init Job to initiate replica set
-
+# MongoDB Init Job
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: mongo-init
+  namespace: opti-route
 spec:
   template:
     spec:
@@ -151,21 +147,29 @@ spec:
         command:
         - bash
         - -c
-        - >
-          mongosh --host mongo-0.mongo:27017 --eval "
-            rs.initiate();
-            rs.reconfig({_id: 'my-rs', version: 1, members: [{ _id: 0, host: 'mongo-0.mongo:27017' }]},{force:true});
+        - |
+          mongosh --host mongo-0.mongo-svc.opti-route.svc.cluster.local:27017 --eval "
+            try {
+              rs.status();
+              print('Replica set already initialized');
+            } catch (e) {
+              print('Initializing replica set...');
+              rs.initiate({
+                _id: 'my-rs',
+                members: [
+                  { _id: 0, host: 'mongo-0.mongo-svc.opti-route.svc.cluster.local:27017' }
+                ]
+              });
+            }
           "
       restartPolicy: OnFailure
-
 ---
-
-# Opti-route Deployment + Service
-
+# Opti-route Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: opti-route
+  namespace: opti-route
 spec:
   replicas: 1
   selector:
@@ -188,12 +192,13 @@ spec:
             name: opti-route-config
         - secretRef:
             name: opti-route-secret
-
 ---
+# Opti-route Service
 apiVersion: v1
 kind: Service
 metadata:
   name: opti-route-service
+  namespace: opti-route
 spec:
   type: NodePort
   selector:

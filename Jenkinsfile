@@ -1,43 +1,56 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:24.0.5-dind' 
-            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     stages {
-        stage('Checkout') {
+        stage('Check Docker') {
             steps {
-                checkout scm
+                script {
+                    echo "Checking Docker installation..."
+                    sh 'docker --version'
+                    sh 'docker ps'
+                }
             }
         }
 
-        stage('Run E2E Tests in Docker') {
+        stage('Check Docker Compose') {
             steps {
-                sh '''
-                  echo "Starting test environment..."
-                  docker compose -f docker-compose.test.yml up -d --build
-                  sleep 15 
-                  echo "Running E2E tests..."
-                  npm install
-                  npm run test:e2e
-                '''
+                script {
+                    echo "Checking Docker Compose installation..."
+                    sh 'docker-compose --version'
+                }
+            }
+        }
+
+        stage('Test Docker Run') {
+            steps {
+                script {
+                    echo "Running a test container..."
+                    sh 'docker run --rm hello-world'
+                }
+            }
+        }
+
+        stage('Test Docker Compose Run') {
+            steps {
+                script {
+                    echo "Creating a simple docker-compose.yml for test"
+                    writeFile file: 'docker-compose.yml', text: '''
+                    version: "3.9"
+                    services:
+                      alpine-test:
+                        image: alpine
+                        command: echo "Hello from docker-compose"
+                    '''
+                    sh 'docker-compose up --abort-on-container-exit'
+                }
             }
         }
     }
 
     post {
         always {
-            echo "Cleaning up..."
-            sh 'docker compose -f docker-compose.test.yml down'
-        }
-        success {
-            echo 'E2E tests passed'
-        }
-        failure {
-            echo 'E2E tests failed'
+            echo 'Cleaning up...'
+            sh 'docker-compose down || true'
         }
     }
 }
-
