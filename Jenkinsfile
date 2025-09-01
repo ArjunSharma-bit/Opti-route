@@ -12,37 +12,24 @@ pipeline {
             }
         }
 
-        stage('Check Docker Compose') {
+        stage('Start Test Env') {
             steps {
                 script {
-                    echo "Checking Docker Compose installation..."
-                    sh 'docker-compose --version'
-                }
-            }
-        }
-
-        stage('Test Docker Run') {
-            steps {
-                script {
-                    echo "Running a test container..."
-                    sh 'docker run --rm hello-world'
-                }
-            }
-        }
-
-        stage('Test Docker Compose Run') {
-            steps {
-                script {
-                    echo "Creating a simple docker-compose.yml for test"
-                    writeFile file: 'docker-compose.yml', text: '''
-                    version: "3.9"
-                    services:
-                      alpine-test:
-                        image: alpine
-                        command: echo "Hello from docker-compose"
+                    echo "Running Test Build"
+                    sh '''
+                        docker compose -f docker-compose.test.yml up -d --build
+                        sleep 15
                     '''
-                    sh 'docker-compose up --abort-on-container-exit'
                 }
+            }
+        }
+
+        stage('Run E2E Tests') {
+            steps {
+                echo "Running E2E Tests"
+                sh '''
+                docker exec app-test npm run test:e2e
+                '''
             }
         }
     }
@@ -50,7 +37,7 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            sh 'docker-compose down || true'
+            sh 'docker compose -f docker-compose.test.yml down -v'
         }
     }
 }
