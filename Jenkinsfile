@@ -42,59 +42,51 @@ pipeline {
 
         stage('Run E2E Tests') {
             when {
-                expression { 
-                    return env.CHANGE_ID != null 
-                }
+                expression { env.CHANGE_ID != null } // only for PRs
             }
             steps {
-                withCredentials([string(credentialsId: 'git-hub-pat-token', variable: 'GITHUB_TOKEN')]) {
-                    script {
-                        githubNotify(
-                            context: 'E2E-Tests',
-                            status: 'PENDING',
-                            description: 'Running E2E tests...',
-                            credentialsId: 'git-hub-pat-token',
-                            repo: env.GITHUB_REPO,
-                            account: env.GITHUB_ACCOUNT,
-                            sha: env.GIT_COMMIT
-                        )
+                script {
+                    githubNotify(
+                        context: 'E2E-Tests',
+                        status: 'PENDING',
+                        description: 'Running E2E tests...',
+                        credentialsId: 'git-hub-pat-token',
+                        repo: env.GITHUB_REPO,
+                        account: env.GITHUB_ACCOUNT,
+                        sha: env.GIT_COMMIT
+                    )
 
-                        echo "Running E2E Tests"
-                        sh '''
-                            docker-compose -f docker-compose.test.yml run --rm app-test npm run test:e2e
-                        '''
-                    }
+                    echo "Running E2E Tests"
+                    sh '''
+                        docker-compose -f docker-compose.test.yml run --rm app-test npm run test:e2e
+                    '''
                 }
             }
             post {
                 success {
                     script {
-                        withCredentials([string(credentialsId: 'git-hub-pat-token', variable: 'GITHUB_TOKEN')]) {
-                            githubNotify(
-                                context: 'E2E-Tests',
-                                status: 'SUCCESS',
-                                description: 'E2E tests passed',
-                                credentialsId: 'git-hub-pat-token',
-                                repo: env.GITHUB_REPO,
-                                account: env.GITHUB_ACCOUNT,
-                                sha: env.GIT_COMMIT
-                            )
-                        }
+                        githubNotify(
+                            context: 'E2E-Tests',
+                            status: 'SUCCESS',
+                            description: 'E2E tests passed',
+                            credentialsId: 'git-hub-pat-token',
+                            repo: env.GITHUB_REPO,
+                            account: env.GITHUB_ACCOUNT,
+                            sha: env.GIT_COMMIT
+                        )
                     }
                 }
                 failure {
                     script {
-                        withCredentials([string(credentialsId: 'git-hub-pat-token', variable: 'GITHUB_TOKEN')]) {
-                            githubNotify(
-                                context: 'E2E-Tests',
-                                status: 'FAILURE',
-                                description: 'E2E tests failed',
-                                credentialsId: 'git-hub-pat-token',
-                                repo: env.GITHUB_REPO,
-                                account: env.GITHUB_ACCOUNT,
-                                sha: env.GIT_COMMIT
-                            )
-                        }
+                        githubNotify(
+                            context: 'E2E-Tests',
+                            status: 'FAILURE',
+                            description: 'E2E tests failed',
+                            credentialsId: 'git-hub-pat-token',
+                            repo: env.GITHUB_REPO,
+                            account: env.GITHUB_ACCOUNT,
+                            sha: env.GIT_COMMIT
+                        )
                     }
                 }
             }
@@ -108,3 +100,4 @@ pipeline {
         }
     }
 }
+
