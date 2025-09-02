@@ -45,7 +45,6 @@ pipeline {
                 expression { 
                     return env.CHANGE_ID != null 
                 }
-<<<<<<< HEAD
             }
             steps {
                 withCredentials([string(credentialsId: 'git-hub-pat-token', variable: 'GITHUB_TOKEN')]) {
