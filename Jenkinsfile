@@ -4,7 +4,7 @@ pipeline {
     environment {
       GITHUB_REPO = 'git@github.com:ArjunSharma-bit/Opti-route.git'
       GITHUB_ACCOUNT = 'ArjunSharma-bit'
-      GITHUB_CREDENTIALS = 'github-token'
+      GITHUB_CREDENTIALS = 'git-hub-pat-token'
     }
 
     stages {
