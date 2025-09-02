@@ -43,14 +43,12 @@ pipeline {
         stage('Run E2E Tests') {
             when {
                 expression { 
-                    // Only run on pull requests (Multibranch Pipeline sets CHANGE_ID)
                     return env.CHANGE_ID != null 
                 }
             }
             steps {
                 withCredentials([string(credentialsId: 'git-hub-pat-token', variable: 'GITHUB_TOKEN')]) {
                     script {
-                        // Notify GitHub that tests are running
                         githubNotify(
                             context: 'E2E-Tests',
                             status: 'PENDING',
