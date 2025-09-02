@@ -41,21 +41,26 @@ pipeline {
 
         stage('Run E2E Tests') {
             steps {
+              withCrediatials([string(credentialsId: 'git-hub-pat-token', variable: 'GITHUB_TOKEN')]) {
                 script {
+                githubNotify( context: 'E2E-Tests', status: 'PENDING', description: 'Running......', credentialsId: 'git-hub-pat-token', repo: env.GITHUB_REPO, account: env.GITHUB_ACCOUNT, sha: env.GIT_COMMIT)
               }
                 echo "Running E2E Tests"
                 sh '''
                 docker-compose -f docker-compose.test.yml run --rm app-test npm run test:e2e
                 '''
             }
-            post {
-              success {
-                script {
+              post {
+                success {
+                  script {
+                    githubNotify (context: 'E2E-Tests', status: 'SUCCESS', description: 'Test Passed', credentialsId: 'git-hub-pat-token', repo: env.GITHUB_REPO, account: env.GITHUB_ACCOUNT, sha: env.GIT_COMMIT)
+                  }
                 }
+                failure {
+                  script {
+                    githubNotify (context: 'E2E-Tests', status: 'FAILURE', description: 'Test Failed', credentialsId: 'git-hub-pat-token', repo: env.GITHUB_REPO, account: env.GITHUB_ACCOUNT, sha: env.GIT_COMMIT)
               }
-              failure {
-                script {
-            }
+          }
         }
       }
     }
