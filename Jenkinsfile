@@ -39,7 +39,7 @@ pipeline {
                 }
             }
         }
-
+      
         stage('Run E2E Tests') {
             when {
                 expression { return env.CHANGE_ID != null}
@@ -75,7 +75,6 @@ pipeline {
                             account: env.GITHUB_ACCOUNT,
                             sha: env.GIT_COMMIT
                             targetUrl: "${env.BUILD_URL}"
-
                         )
                     }
                 }
