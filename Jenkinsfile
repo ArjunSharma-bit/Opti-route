@@ -54,6 +54,7 @@ pipeline {
                         repo: env.GITHUB_REPO,
                         account: env.GITHUB_ACCOUNT,
                         sha: env.GIT_COMMIT
+                        targetUrl: "${env.BUILD_URL}"
                     )
 
                     echo "Running E2E Tests"
@@ -73,6 +74,8 @@ pipeline {
                             repo: env.GITHUB_REPO,
                             account: env.GITHUB_ACCOUNT,
                             sha: env.GIT_COMMIT
+                            targetUrl: "${env.BUILD_URL}"
+
                         )
                     }
                 }
@@ -86,6 +89,7 @@ pipeline {
                             repo: env.GITHUB_REPO,
                             account: env.GITHUB_ACCOUNT,
                             sha: env.GIT_COMMIT
+                            targetUrl: "${env.BUILD_URL}"
                         )
                     }
                 }
